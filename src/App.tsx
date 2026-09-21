@@ -22,6 +22,8 @@ import { auth } from './firebase/config';
 import { saveFinancialStateToCloud } from './firebase/service';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import { QuickAddModal } from './components/QuickAddModal';
 import { DashboardTab } from './components/DashboardTab';
 import { IncomeTab } from './components/IncomeTab';
 import { ExpenseTab } from './components/ExpenseTab';
@@ -38,6 +40,7 @@ import { RecurringAutomationTab } from './components/RecurringAutomationTab';
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadAppState());
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return (
@@ -360,7 +363,7 @@ export default function App() {
         />
 
         {/* Main Tab View Port */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
         {activeTab === 'dashboard' && (
           <DashboardTab
             state={state}
@@ -452,13 +455,11 @@ export default function App() {
 
         {activeTab === 'coach' && <AICoachTab state={state} />}
 
-        {activeTab === 'islamic' && (
-          <IslamicGuidanceTab state={state} onNavigateTab={setActiveTab} />
-        )}
+        {activeTab === 'islamic' && <IslamicGuidanceTab state={state} />}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+      <footer className="hidden md:block border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
             <strong>My Finance Manager</strong> • Grounded in the principles of the Financial Stress Guide
@@ -468,6 +469,19 @@ export default function App() {
           </span>
         </div>
       </footer>
+
+      {/* Mobile Primary Navigation & Quick Add */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onQuickAdd={() => setIsQuickAddOpen(true)}
+      />
+      <QuickAddModal
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        onAddIncome={handleAddIncome}
+        onAddExpense={handleAddExpense}
+      />
     </div>
   </AuthProvider>
   );

@@ -78,7 +78,7 @@ Principles to adhere to:
       : `Provide 3-5 concise, high-impact financial recommendations and an actionable next-month plan based on this exact financial profile:\n${JSON.stringify(financialData, null, 2)}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash",
       contents: userMessage,
       config: {
         systemInstruction,

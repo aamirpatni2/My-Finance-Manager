@@ -67,7 +67,6 @@ export const AuthBar: React.FC<AuthBarProps> = ({ currentState }) => {
             />
           </svg>
           <span className="hidden sm:inline">Sign in with Google</span>
-          <span className="sm:hidden">Sign In</span>
         </button>
       </div>
     );
