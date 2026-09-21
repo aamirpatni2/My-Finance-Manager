@@ -21,6 +21,8 @@ import {
   getMonthlyExpenses,
 } from '../utils/financialCalculations';
 import { formatPKR, formatMonthName } from '../utils/formatters';
+import { SpendingTrendChart } from './SpendingTrendChart';
+import { FinancialMilestonesSection } from './FinancialMilestonesSection';
 import {
   ResponsiveContainer,
   PieChart,
@@ -362,6 +364,12 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Financial Milestones & Digital Badges Section */}
+      <FinancialMilestonesSection state={state} onNavigateTab={navigate} />
+
+      {/* 6-Month Spending Trends & Seasonal Shift Analysis Line Chart */}
+      <SpendingTrendChart state={state} selectedMonth={month} />
 
       {/* Visual Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -351,3 +351,116 @@ export function calculateZakat(state: AppState) {
     zakatDue,
   };
 }
+
+export function getPastNMonths(baseMonthStr: string, count: number = 6): string[] {
+  const [yearStr, monthStr] = baseMonthStr.split('-');
+  const baseYear = parseInt(yearStr, 10);
+  const baseMonth = parseInt(monthStr, 10);
+
+  const months: string[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    let targetMonth = baseMonth - i;
+    let targetYear = baseYear;
+    while (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear -= 1;
+    }
+    const mPad = String(targetMonth).padStart(2, '0');
+    months.push(`${targetYear}-${mPad}`);
+  }
+  return months;
+}
+
+export interface MonthTrendData {
+  monthKey: string;
+  monthLabel: string;
+  shortLabel: string;
+  totalExpenses: number;
+  needsExpenses: number;
+  wantsExpenses: number;
+  totalIncome: number;
+  monthlySavings: number;
+  savingsRate: number;
+  topCategory: string;
+  topCategoryAmount: number;
+}
+
+export interface SixMonthTrendsSummary {
+  trendData: MonthTrendData[];
+  averageExpense: number;
+  averageIncome: number;
+  highestMonth: MonthTrendData;
+  lowestMonth: MonthTrendData;
+  seasonalSwing: number;
+  seasonalSwingPercent: number;
+  currentMonthTrendVsAvg: number;
+  hasSufficientData: boolean;
+}
+
+export function calculateSixMonthTrends(state: AppState, currentMonth: string): SixMonthTrendsSummary {
+  const months = getPastNMonths(currentMonth, 6);
+
+  const trendData: MonthTrendData[] = months.map((m) => {
+    const totals = calculateMonthlyTotals(state, m);
+    const [year, monthNum] = m.split('-');
+    const dateObj = new Date(parseInt(year, 10), parseInt(monthNum, 10) - 1, 1);
+    const shortLabel = dateObj.toLocaleDateString('en-US', { month: 'short' });
+    const monthLabel = dateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    const topCat = totals.topCategories[0] || { category: 'None', amount: 0 };
+
+    return {
+      monthKey: m,
+      monthLabel,
+      shortLabel,
+      totalExpenses: totals.totalExpenses,
+      needsExpenses: totals.needsExpenses,
+      wantsExpenses: totals.wantsExpenses,
+      totalIncome: totals.totalIncome,
+      monthlySavings: totals.monthlySavings,
+      savingsRate: totals.savingsRate,
+      topCategory: topCat.category,
+      topCategoryAmount: topCat.amount,
+    };
+  });
+
+  const monthsWithExpenses = trendData.filter((d) => d.totalExpenses > 0);
+  const totalExpensesSum = trendData.reduce((sum, d) => sum + d.totalExpenses, 0);
+  const totalIncomeSum = trendData.reduce((sum, d) => sum + d.totalIncome, 0);
+  const averageExpense = Math.round(totalExpensesSum / 6);
+  const averageIncome = Math.round(totalIncomeSum / 6);
+
+  let highestMonth = trendData[0];
+  let lowestMonth = trendData[0];
+
+  trendData.forEach((d) => {
+    if (d.totalExpenses > highestMonth.totalExpenses) {
+      highestMonth = d;
+    }
+    if (lowestMonth.totalExpenses === 0 || (d.totalExpenses > 0 && d.totalExpenses < lowestMonth.totalExpenses)) {
+      lowestMonth = d;
+    }
+  });
+
+  const seasonalSwing = Math.max(0, highestMonth.totalExpenses - lowestMonth.totalExpenses);
+  const seasonalSwingPercent = lowestMonth.totalExpenses > 0
+    ? Math.round((seasonalSwing / lowestMonth.totalExpenses) * 100)
+    : 0;
+
+  const currentMonthData = trendData[trendData.length - 1];
+  const currentMonthTrendVsAvg = averageExpense > 0
+    ? Math.round(((currentMonthData.totalExpenses - averageExpense) / averageExpense) * 100)
+    : 0;
+
+  return {
+    trendData,
+    averageExpense,
+    averageIncome,
+    highestMonth,
+    lowestMonth,
+    seasonalSwing,
+    seasonalSwingPercent,
+    currentMonthTrendVsAvg,
+    hasSufficientData: monthsWithExpenses.length >= 2,
+  };
+}

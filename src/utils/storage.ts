@@ -23,11 +23,24 @@ export const defaultBudgetConfig: BudgetConfig = {
   },
 };
 
+export function getHistoricalMonthStr(monthsAgo: number): string {
+  const current = getCurrentMonthStr();
+  const [yStr, mStr] = current.split('-');
+  let y = parseInt(yStr, 10);
+  let m = parseInt(mStr, 10) - monthsAgo;
+  while (m <= 0) {
+    m += 12;
+    y -= 1;
+  }
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+
 export const sampleInitialState: AppState = {
   selectedMonth: getCurrentMonthStr(),
   theme: 'light',
   budgetConfig: defaultBudgetConfig,
   incomes: [
+    // Current Month Incomes
     {
       id: 'inc-1',
       source: 'Salary',
@@ -56,8 +69,98 @@ export const sampleInitialState: AppState = {
       notes: 'Family trade partnership distribution',
       createdAt: new Date().toISOString(),
     },
+    // Historical Incomes for Last 5 Months
+    {
+      id: 'hist-inc-1',
+      source: 'Salary',
+      amount: 195000,
+      date: `${getHistoricalMonthStr(1)}-01`,
+      notes: 'Monthly corporate salary',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-2',
+      source: 'Freelance',
+      amount: 40000,
+      date: `${getHistoricalMonthStr(1)}-12`,
+      notes: 'Consulting milestone',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-3',
+      source: 'Salary',
+      amount: 195000,
+      date: `${getHistoricalMonthStr(2)}-01`,
+      notes: 'Monthly corporate salary',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-4',
+      source: 'Freelance',
+      amount: 55000,
+      date: `${getHistoricalMonthStr(2)}-10`,
+      notes: 'Mid-year consulting bonuses & extra projects',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-5',
+      source: 'Business',
+      amount: 25000,
+      date: `${getHistoricalMonthStr(2)}-18`,
+      notes: 'Trade seasonal distribution',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-6',
+      source: 'Salary',
+      amount: 195000,
+      date: `${getHistoricalMonthStr(3)}-01`,
+      notes: 'Monthly corporate salary',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-7',
+      source: 'Freelance',
+      amount: 35000,
+      date: `${getHistoricalMonthStr(3)}-14`,
+      notes: 'Client retainer',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-8',
+      source: 'Salary',
+      amount: 195000,
+      date: `${getHistoricalMonthStr(4)}-01`,
+      notes: 'Monthly corporate salary',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-9',
+      source: 'Freelance',
+      amount: 42000,
+      date: `${getHistoricalMonthStr(4)}-11`,
+      notes: 'Advisory project',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-10',
+      source: 'Salary',
+      amount: 195000,
+      date: `${getHistoricalMonthStr(5)}-01`,
+      notes: 'Monthly corporate salary',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'hist-inc-11',
+      source: 'Freelance',
+      amount: 38000,
+      date: `${getHistoricalMonthStr(5)}-15`,
+      notes: 'Web application review contract',
+      createdAt: new Date().toISOString(),
+    },
   ],
   expenses: [
+    // Current Month Expenses
     {
       id: 'exp-1',
       category: 'Rent/Housing',
@@ -149,6 +252,61 @@ export const sampleInitialState: AppState = {
       notes: 'Weekend dining out with family',
       createdAt: new Date().toISOString(),
     },
+
+    // Historical Expenses: Month -1 (August - Academic Resumption & Fees)
+    { id: 'h-e1-1', category: 'Rent/Housing', type: 'Essential', amount: 48000, date: `${getHistoricalMonthStr(1)}-02`, notes: 'House rent', createdAt: new Date().toISOString() },
+    { id: 'h-e1-2', category: 'Food', type: 'Essential', amount: 36000, date: `${getHistoricalMonthStr(1)}-05`, notes: 'Monthly groceries', createdAt: new Date().toISOString() },
+    { id: 'h-e1-3', category: 'Utilities', type: 'Essential', amount: 34000, date: `${getHistoricalMonthStr(1)}-07`, notes: 'Electricity bill (summer tariff)', createdAt: new Date().toISOString() },
+    { id: 'h-e1-4', category: 'Transport', type: 'Essential', amount: 16000, date: `${getHistoricalMonthStr(1)}-09`, notes: 'Commute & fuel', createdAt: new Date().toISOString() },
+    { id: 'h-e1-5', category: 'Education', type: 'Essential', amount: 28000, date: `${getHistoricalMonthStr(1)}-10`, notes: 'Academic reopening, term registration & uniforms', createdAt: new Date().toISOString() },
+    { id: 'h-e1-6', category: 'Medicine', type: 'Essential', amount: 8500, date: `${getHistoricalMonthStr(1)}-12`, notes: 'Routine healthcare', createdAt: new Date().toISOString() },
+    { id: 'h-e1-7', category: 'Family', type: 'Essential', amount: 11000, date: `${getHistoricalMonthStr(1)}-14`, notes: 'Family assistance', createdAt: new Date().toISOString() },
+    { id: 'h-e1-8', category: 'Shopping', type: 'Want', amount: 10000, date: `${getHistoricalMonthStr(1)}-18`, notes: 'School bags & stationery supplies', createdAt: new Date().toISOString() },
+    { id: 'h-e1-9', category: 'Entertainment', type: 'Want', amount: 7000, date: `${getHistoricalMonthStr(1)}-22`, notes: 'Family dining', createdAt: new Date().toISOString() },
+
+    // Historical Expenses: Month -2 (July - Summer Peak & Festival Surge)
+    { id: 'h-e2-1', category: 'Rent/Housing', type: 'Essential', amount: 48000, date: `${getHistoricalMonthStr(2)}-02`, notes: 'House rent', createdAt: new Date().toISOString() },
+    { id: 'h-e2-2', category: 'Food', type: 'Essential', amount: 42000, date: `${getHistoricalMonthStr(2)}-05`, notes: 'Holiday feasts & extended family gatherings', createdAt: new Date().toISOString() },
+    { id: 'h-e2-3', category: 'Utilities', type: 'Essential', amount: 46000, date: `${getHistoricalMonthStr(2)}-07`, notes: 'Peak summer electricity (dual AC units & heatwave tariff)', createdAt: new Date().toISOString() },
+    { id: 'h-e2-4', category: 'Transport', type: 'Essential', amount: 18000, date: `${getHistoricalMonthStr(2)}-09`, notes: 'Summer travel & holiday fuel', createdAt: new Date().toISOString() },
+    { id: 'h-e2-5', category: 'Education', type: 'Essential', amount: 18000, date: `${getHistoricalMonthStr(2)}-10`, notes: 'Monthly tuition reserve', createdAt: new Date().toISOString() },
+    { id: 'h-e2-6', category: 'Medicine', type: 'Essential', amount: 9000, date: `${getHistoricalMonthStr(2)}-12`, notes: 'Routine healthcare', createdAt: new Date().toISOString() },
+    { id: 'h-e2-7', category: 'Family', type: 'Essential', amount: 16000, date: `${getHistoricalMonthStr(2)}-15`, notes: 'Gifting and holiday support for relatives', createdAt: new Date().toISOString() },
+    { id: 'h-e2-8', category: 'Shopping', type: 'Want', amount: 28000, date: `${getHistoricalMonthStr(2)}-18`, notes: 'Seasonal celebratory wardrobe, footwear & home upgrades', createdAt: new Date().toISOString() },
+    { id: 'h-e2-9', category: 'Entertainment', type: 'Want', amount: 13000, date: `${getHistoricalMonthStr(2)}-23`, notes: 'Holiday family outings & restaurant visits', createdAt: new Date().toISOString() },
+
+    // Historical Expenses: Month -3 (June - Summer Tariffs Onset)
+    { id: 'h-e3-1', category: 'Rent/Housing', type: 'Essential', amount: 48000, date: `${getHistoricalMonthStr(3)}-02`, notes: 'House rent', createdAt: new Date().toISOString() },
+    { id: 'h-e3-2', category: 'Food', type: 'Essential', amount: 37000, date: `${getHistoricalMonthStr(3)}-05`, notes: 'Monthly groceries', createdAt: new Date().toISOString() },
+    { id: 'h-e3-3', category: 'Utilities', type: 'Essential', amount: 39000, date: `${getHistoricalMonthStr(3)}-07`, notes: 'Summer AC cooling tariff onset', createdAt: new Date().toISOString() },
+    { id: 'h-e3-4', category: 'Transport', type: 'Essential', amount: 16500, date: `${getHistoricalMonthStr(3)}-09`, notes: 'Commuting & petrol', createdAt: new Date().toISOString() },
+    { id: 'h-e3-5', category: 'Education', type: 'Essential', amount: 18000, date: `${getHistoricalMonthStr(3)}-10`, notes: 'Children school fees', createdAt: new Date().toISOString() },
+    { id: 'h-e3-6', category: 'Medicine', type: 'Essential', amount: 8000, date: `${getHistoricalMonthStr(3)}-12`, notes: 'Routine medication', createdAt: new Date().toISOString() },
+    { id: 'h-e3-7', category: 'Family', type: 'Essential', amount: 12000, date: `${getHistoricalMonthStr(3)}-14`, notes: 'Family support', createdAt: new Date().toISOString() },
+    { id: 'h-e3-8', category: 'Shopping', type: 'Want', amount: 12000, date: `${getHistoricalMonthStr(3)}-18`, notes: 'Summer clothing essentials', createdAt: new Date().toISOString() },
+    { id: 'h-e3-9', category: 'Entertainment', type: 'Want', amount: 9500, date: `${getHistoricalMonthStr(3)}-21`, notes: 'Weekend dining', createdAt: new Date().toISOString() },
+
+    // Historical Expenses: Month -4 (May - Moderate Transition)
+    { id: 'h-e4-1', category: 'Rent/Housing', type: 'Essential', amount: 48000, date: `${getHistoricalMonthStr(4)}-02`, notes: 'House rent', createdAt: new Date().toISOString() },
+    { id: 'h-e4-2', category: 'Food', type: 'Essential', amount: 35000, date: `${getHistoricalMonthStr(4)}-05`, notes: 'Monthly groceries', createdAt: new Date().toISOString() },
+    { id: 'h-e4-3', category: 'Utilities', type: 'Essential', amount: 23000, date: `${getHistoricalMonthStr(4)}-07`, notes: 'Moderate spring utilities bill', createdAt: new Date().toISOString() },
+    { id: 'h-e4-4', category: 'Transport', type: 'Essential', amount: 16000, date: `${getHistoricalMonthStr(4)}-09`, notes: 'Petrol & maintenance', createdAt: new Date().toISOString() },
+    { id: 'h-e4-5', category: 'Education', type: 'Essential', amount: 18000, date: `${getHistoricalMonthStr(4)}-10`, notes: 'Children school fees', createdAt: new Date().toISOString() },
+    { id: 'h-e4-6', category: 'Medicine', type: 'Essential', amount: 7500, date: `${getHistoricalMonthStr(4)}-12`, notes: 'Medical maintenance', createdAt: new Date().toISOString() },
+    { id: 'h-e4-7', category: 'Family', type: 'Essential', amount: 10000, date: `${getHistoricalMonthStr(4)}-14`, notes: 'Family assistance', createdAt: new Date().toISOString() },
+    { id: 'h-e4-8', category: 'Shopping', type: 'Want', amount: 9000, date: `${getHistoricalMonthStr(4)}-18`, notes: 'Minor apparel', createdAt: new Date().toISOString() },
+    { id: 'h-e4-9', category: 'Entertainment', type: 'Want', amount: 7500, date: `${getHistoricalMonthStr(4)}-20`, notes: 'Dining out', createdAt: new Date().toISOString() },
+
+    // Historical Expenses: Month -5 (April - Pleasant Spring Low Baseline)
+    { id: 'h-e5-1', category: 'Rent/Housing', type: 'Essential', amount: 48000, date: `${getHistoricalMonthStr(5)}-02`, notes: 'House rent', createdAt: new Date().toISOString() },
+    { id: 'h-e5-2', category: 'Food', type: 'Essential', amount: 34000, date: `${getHistoricalMonthStr(5)}-05`, notes: 'Standard groceries', createdAt: new Date().toISOString() },
+    { id: 'h-e5-3', category: 'Utilities', type: 'Essential', amount: 16000, date: `${getHistoricalMonthStr(5)}-07`, notes: 'Low spring electricity bill (no AC/cooling needed)', createdAt: new Date().toISOString() },
+    { id: 'h-e5-4', category: 'Transport', type: 'Essential', amount: 15000, date: `${getHistoricalMonthStr(5)}-09`, notes: 'Fuel & routine maintenance', createdAt: new Date().toISOString() },
+    { id: 'h-e5-5', category: 'Education', type: 'Essential', amount: 18000, date: `${getHistoricalMonthStr(5)}-10`, notes: 'Children school fees', createdAt: new Date().toISOString() },
+    { id: 'h-e5-6', category: 'Medicine', type: 'Essential', amount: 7000, date: `${getHistoricalMonthStr(5)}-12`, notes: 'Medical pharmacy', createdAt: new Date().toISOString() },
+    { id: 'h-e5-7', category: 'Family', type: 'Essential', amount: 10000, date: `${getHistoricalMonthStr(5)}-14`, notes: 'Family support', createdAt: new Date().toISOString() },
+    { id: 'h-e5-8', category: 'Shopping', type: 'Want', amount: 8000, date: `${getHistoricalMonthStr(5)}-18`, notes: 'Household items', createdAt: new Date().toISOString() },
+    { id: 'h-e5-9', category: 'Entertainment', type: 'Want', amount: 6000, date: `${getHistoricalMonthStr(5)}-21`, notes: 'Recreation', createdAt: new Date().toISOString() },
   ],
   savingsGoals: [
     {
@@ -248,9 +406,26 @@ export function loadAppState(): AppState {
       return sampleInitialState;
     }
     const parsed = JSON.parse(raw);
+    const existingExpenses = parsed.expenses || [];
+    const distinctExpenseMonths = new Set(existingExpenses.map((e: any) => e.date?.substring(0, 7)));
+
+    let mergedExpenses = existingExpenses;
+    let mergedIncomes = parsed.incomes || [];
+
+    // If existing state has fewer than 3 months of expenses, include sample historical records from prior months
+    if (distinctExpenseMonths.size < 3) {
+      const currentM = getCurrentMonthStr();
+      const pastSampleExpenses = sampleInitialState.expenses.filter((e) => !e.date.startsWith(currentM));
+      const pastSampleIncomes = sampleInitialState.incomes.filter((i) => !i.date.startsWith(currentM));
+      mergedExpenses = [...existingExpenses, ...pastSampleExpenses];
+      mergedIncomes = [...mergedIncomes, ...pastSampleIncomes];
+    }
+
     return {
       ...sampleInitialState,
       ...parsed,
+      incomes: mergedIncomes,
+      expenses: mergedExpenses,
       monthlyReviewNotes: {
         ...(sampleInitialState.monthlyReviewNotes || {}),
         ...(parsed.monthlyReviewNotes || {}),
