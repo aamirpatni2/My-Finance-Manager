@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document stored under /users/{userId}",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["uid", "email"]
+    },
+    "FinancialData": {
+      "title": "FinancialData",
+      "description": "User complete personal financial state, transactions, budgets, goals, debts, and net worth",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "incomes": { "type": "array" },
+        "expenses": { "type": "array" },
+        "budgetConfig": { "type": "object" },
+        "savingsGoals": { "type": "array" },
+        "debts": { "type": "array" },
+        "netWorthItems": { "type": "array" },
+        "selectedMonth": { "type": "string", "maxLength": 7 },
+        "monthlyReviewNotes": { "type": "object" },
+        "theme": { "type": "string", "maxLength": 16 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["userId", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document isolated and accessible strictly to the owner"
+    },
+    "/users/{userId}/financialData/{docId}": {
+      "schema": "FinancialData",
+      "description": "Financial state document isolated and accessible strictly to the owner"
+    }
+  }
+}
