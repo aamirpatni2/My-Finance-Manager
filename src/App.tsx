@@ -455,7 +455,9 @@ export default function App() {
 
         {activeTab === 'coach' && <AICoachTab state={state} />}
 
-        {activeTab === 'islamic' && <IslamicGuidanceTab state={state} />}
+        {activeTab === 'islamic' && (
+          <IslamicGuidanceTab state={state} onNavigateTab={setActiveTab} />
+        )}
       </main>
 
       {/* Footer */}

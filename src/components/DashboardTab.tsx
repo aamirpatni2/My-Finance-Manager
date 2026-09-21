@@ -196,153 +196,137 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
       )}
 
-      {/* Core 8 Financial Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Monthly Income */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Monthly Income</span>
-            <div className="rounded-lg bg-emerald-50 p-1.5 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-              <TrendingUp className="h-4 w-4" />
+      {/* Hero: This Month snapshot + Net Worth — the two numbers that answer "am I okay?" */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* This Month Snapshot */}
+        <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-4">This Month at a Glance</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] font-medium">Income</span>
+              </div>
+              <div className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                {formatPKR(totalIncome, true)}
+              </div>
+              <button onClick={() => navigate('income')} className="text-[11px] text-emerald-600 hover:underline font-medium">
+                View &gt;
+              </button>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                <TrendingDown className="h-3.5 w-3.5 text-rose-600" />
+                <span className="text-[11px] font-medium">Expenses</span>
+              </div>
+              <div className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                {formatPKR(totalExpenses, true)}
+              </div>
+              <button onClick={() => navigate('expense')} className="text-[11px] text-rose-600 hover:underline font-medium">
+                View &gt;
+              </button>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                <PiggyBank className="h-3.5 w-3.5 text-blue-600" />
+                <span className="text-[11px] font-medium">Savings</span>
+              </div>
+              <div className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                {formatPKR(monthlySavings, true)}
+              </div>
+              <span className={`text-[11px] font-medium ${savingsRate >= 20 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {savingsRate.toFixed(1)}% rate
+              </span>
             </div>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(totalIncome)}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>{state.incomes.filter(i => i.date.startsWith(month)).length} records</span>
-            <button onClick={() => navigate('income')} className="text-emerald-600 hover:underline font-medium">
-              View &gt;
-            </button>
-          </div>
-        </div>
-
-        {/* Monthly Expenses */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Monthly Expenses</span>
-            <div className="rounded-lg bg-rose-50 p-1.5 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-              <TrendingDown className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(totalExpenses)}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Needs: {formatPKR(needsExpenses)}</span>
-            <button onClick={() => navigate('expense')} className="text-rose-600 hover:underline font-medium">
-              View &gt;
-            </button>
-          </div>
-        </div>
-
-        {/* Monthly Savings & Rate */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Monthly Savings</span>
-            <div className="rounded-lg bg-blue-50 p-1.5 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-              <PiggyBank className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(monthlySavings)}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span className={savingsRate >= 20 ? 'text-emerald-600 font-semibold' : 'text-amber-600 font-medium'}>
-              {savingsRate.toFixed(1)}% savings rate
-            </span>
-            <span className="text-[10px] text-slate-400">(Goal: 20%)</span>
-          </div>
-        </div>
-
-        {/* Emergency Fund */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Emergency Fund</span>
-            <div className="rounded-lg bg-teal-50 p-1.5 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(emergencyFund)}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span className="font-medium text-slate-700 dark:text-slate-300">
-              {stress.emergencyFundMonths.toFixed(1)} mos. essentials
-            </span>
-            <button onClick={() => navigate('savings')} className="text-teal-600 hover:underline font-medium">
-              Goals &gt;
-            </button>
-          </div>
-        </div>
-
-        {/* Debt Outstanding */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Debt Outstanding</span>
-            <div className="rounded-lg bg-amber-50 p-1.5 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
-              <CreditCard className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(debtOutstanding)}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>{state.debts.length} active liabilities</span>
-            <button onClick={() => navigate('debt')} className="text-amber-600 hover:underline font-medium">
-              Manage &gt;
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">Needs: {formatPKR(needsExpenses, true)} • Wants: {formatPKR(wantsExpenses, true)}</span>
+            <button onClick={() => navigate('budget')} className="text-emerald-600 hover:underline font-medium">
+              Budget Planner &gt;
             </button>
           </div>
         </div>
 
         {/* Net Worth */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+        <div
+          onClick={() => navigate('networth')}
+          className="lg:col-span-2 cursor-pointer rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-indigo-400 transition flex flex-col"
+        >
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span className="text-xs font-medium">Net Worth</span>
             <div className="rounded-lg bg-indigo-50 p-1.5 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
               <Scale className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {formatPKR(netWorth)}
+          <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {formatPKR(netWorth, true)}
           </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Assets: {formatPKR(totalAssets, true)}</span>
-            <button onClick={() => navigate('networth')} className="text-indigo-600 hover:underline font-medium">
-              Details &gt;
-            </button>
+
+          <div className="mt-4 space-y-2 text-xs flex-1">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Assets</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatPKR(totalAssets, true)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Liabilities</span>
+              <span className="font-semibold text-rose-600 dark:text-rose-400">{formatPKR(totalLiabilities, true)}</span>
+            </div>
+            <div className="w-full bg-rose-100 dark:bg-rose-950/60 rounded-full h-2 overflow-hidden mt-2">
+              <div
+                className="bg-emerald-500 h-2 rounded-full transition-all"
+                style={{ width: `${totalAssets + totalLiabilities > 0 ? (totalAssets / (totalAssets + totalLiabilities)) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-medium text-indigo-600 dark:text-indigo-400">
+            View full breakdown &gt;
           </div>
         </div>
+      </div>
 
-        {/* Emergency Fund Progress */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">6-Mo Cushion Progress</span>
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{efProgressPercent}%</span>
-          </div>
-          <div className="mt-3 w-full bg-slate-100 rounded-full h-2.5 dark:bg-slate-800 overflow-hidden">
-            <div
-              className="bg-emerald-600 h-2.5 rounded-full transition-all"
-              style={{ width: `${efProgressPercent}%` }}
-            />
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Target: {formatPKR(efTarget, true)}</span>
-            <button onClick={() => navigate('savings')} className="text-emerald-600 hover:underline font-medium">
-              Adjust &gt;
-            </button>
-          </div>
-        </div>
-
-        {/* Financial Stress Level */}
-        <div
-          onClick={() => navigate('stress')}
-          className="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-emerald-500 transition"
+      {/* Secondary Status Strip — compact, glanceable, click-through for detail */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <button
+          onClick={() => navigate('savings')}
+          className="text-left rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-teal-400 transition"
         >
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Financial Health</span>
+            <span className="text-[11px] font-medium flex items-center gap-1">
+              <ShieldCheck className="h-3.5 w-3.5" /> Emergency Fund
+            </span>
+          </div>
+          <div className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
+            {stress.emergencyFundMonths.toFixed(1)} mos
+          </div>
+          <div className="mt-1.5 w-full bg-slate-100 rounded-full h-1.5 dark:bg-slate-800 overflow-hidden">
+            <div className="bg-teal-500 h-1.5 rounded-full" style={{ width: `${efProgressPercent}%` }} />
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('debt')}
+          className="text-left rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-amber-400 transition"
+        >
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-medium flex items-center gap-1">
+              <CreditCard className="h-3.5 w-3.5" /> Debt Outstanding
+            </span>
+          </div>
+          <div className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
+            {formatPKR(debtOutstanding, true)}
+          </div>
+          <div className="mt-0.5 text-[10px] text-slate-400">{state.debts.length} active liabilities</div>
+        </button>
+
+        <button
+          onClick={() => navigate('stress')}
+          className="col-span-2 sm:col-span-1 text-left rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-slate-400 transition"
+        >
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-medium">Financial Health</span>
             <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
                 stress.level === 'Calm'
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                   : stress.level === 'Low'
@@ -355,14 +339,10 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               {stress.level}
             </span>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-            <span>Stress Score: {stress.score}</span>
-            <span className="text-xs font-normal text-slate-400">/ 100</span>
+          <div className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
+            {stress.score}<span className="text-[10px] font-normal text-slate-400"> / 100</span>
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 truncate">
-            {stress.score <= 35 ? 'Balanced finances & steady savings' : 'Needs attention to non-essentials'}
-          </div>
-        </div>
+        </button>
       </div>
 
       {/* Financial Milestones & Digital Badges Section */}
