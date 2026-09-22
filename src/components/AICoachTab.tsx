@@ -133,10 +133,23 @@ How can I help you improve your cashflow, pay off debt, or optimize your savings
       }
 
       const data = await response.json();
+      // The endpoint answers with `analysis` from Gemini, or `message` when no
+      // API key is configured and it falls back to the built-in rule engine.
+      const reply = data.analysis || data.message;
+      if (!reply) {
+        throw new Error(data.error || 'Empty response from coach service');
+      }
+
+      if (data.source === 'rule_engine') {
+        setErrorMessage(
+          'Gemini is not configured, so the built-in rule engine answered instead. Add GEMINI_API_KEY to enable AI replies.'
+        );
+      }
+
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        text: data.insights || 'No response generated.',
+        text: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, assistantMsg]);
