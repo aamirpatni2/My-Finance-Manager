@@ -19,6 +19,7 @@ import {
   createEmptyState,
 } from './utils/storage';
 import { detectPendingRecurring } from './utils/recurring';
+import { formatPKR, formatMonthName } from './utils/formatters';
 import { auth } from './firebase/config';
 import { saveFinancialStateToCloud } from './firebase/service';
 import { AuthProvider } from './context/AuthContext';
@@ -327,6 +328,16 @@ export default function App() {
   const handleProcessRecurring = (targetMonth: string = state.selectedMonth) => {
     const pending = detectPendingRecurring(state, targetMonth);
     if (pending.totalCount === 0) return;
+
+    // A weekly rule can produce four or five entries at once, so never insert silently.
+    const incomeTotal = pending.pendingIncomes.reduce((sum, i) => sum + i.amount, 0);
+    const expenseTotal = pending.pendingExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const confirmed = window.confirm(
+      `Add ${pending.totalCount} recurring ${pending.totalCount === 1 ? 'entry' : 'entries'} to ${formatMonthName(targetMonth)}?\n\n` +
+        `Income: ${pending.pendingIncomes.length} entries — ${formatPKR(incomeTotal)}\n` +
+        `Expenses: ${pending.pendingExpenses.length} entries — ${formatPKR(expenseTotal)}`
+    );
+    if (!confirmed) return;
 
     const newIncomes: IncomeItem[] = pending.pendingIncomes.map((item) => ({
       ...item,

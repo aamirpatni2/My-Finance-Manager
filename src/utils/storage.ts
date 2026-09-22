@@ -201,7 +201,7 @@ export const sampleInitialState: AppState = {
       notes: 'Motorbike & car petrol and maintenance',
       createdAt: new Date().toISOString(),
       isRecurring: true,
-      recurringFrequency: 'weekly',
+      recurringFrequency: 'monthly',
     },
     {
       id: 'exp-5',
