@@ -181,6 +181,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartTour, onSki
                 </a>
               ))}
             </div>
+
+            <p className="mt-3 text-[11px] text-slate-400 dark:text-slate-500">
+              <a href="/privacy.html" className="hover:text-emerald-600 hover:underline">
+                Privacy Policy
+              </a>
+              <span className="mx-1.5">·</span>
+              <a href="/terms.html" className="hover:text-emerald-600 hover:underline">
+                Terms of Use
+              </a>
+            </p>
           </div>
         </div>
       </div>

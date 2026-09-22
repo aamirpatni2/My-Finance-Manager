@@ -7,6 +7,7 @@ import {
   saveFinancialStateToCloud,
   fetchFinancialStateFromCloud,
   subscribeToFinancialState,
+  completeRedirectSignIn,
 } from '../firebase/service';
 import { testConnection } from '../firebase/config';
 import { AppState } from '../types/finance';
@@ -46,6 +47,13 @@ export const AuthProvider: React.FC<{
   // Initial connection test on mount
   useEffect(() => {
     testConnection();
+  }, []);
+
+  // Mobile and installed-app sign-in returns here via redirect rather than a popup.
+  useEffect(() => {
+    completeRedirectSignIn().catch((err) => {
+      console.error('Redirect sign-in completion failed:', err);
+    });
   }, []);
 
   // Listen to Auth state

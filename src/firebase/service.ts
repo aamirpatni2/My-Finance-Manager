@@ -1,5 +1,7 @@
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   User as FirebaseUser,
   onAuthStateChanged,
@@ -21,7 +23,52 @@ export interface UserProfile {
   photoURL: string | null;
 }
 
+// Popups are blocked or silently dropped inside Android TWAs and several mobile
+// browsers, so those get the redirect flow instead.
+function prefersRedirectSignIn(): boolean {
+  if (typeof window === 'undefined') return false;
+  const standalone =
+    window.matchMedia?.('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true;
+  const mobile = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+  return standalone || mobile;
+}
+
+async function ensureUserProfile(user: FirebaseUser): Promise<void> {
+  const userDocRef = doc(db, 'users', user.uid);
+  const userSnap = await getDoc(userDocRef);
+  if (!userSnap.exists()) {
+    await setDoc(userDocRef, {
+      uid: user.uid,
+      email: user.email || '',
+      displayName: user.displayName || '',
+      photoURL: user.photoURL || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
+}
+
+// Completes a redirect sign-in after the browser navigates back into the app.
+export async function completeRedirectSignIn(): Promise<FirebaseUser | null> {
+  try {
+    const result = await getRedirectResult(auth);
+    if (!result?.user) return null;
+    await ensureUserProfile(result.user);
+    return result.user;
+  } catch (error) {
+    console.error('Redirect sign-in failed:', error);
+    return null;
+  }
+}
+
 export async function loginWithGoogle(): Promise<FirebaseUser> {
+  if (prefersRedirectSignIn()) {
+    // Navigates away; the session is picked up by completeRedirectSignIn on return.
+    await signInWithRedirect(auth, googleProvider);
+    return new Promise<FirebaseUser>(() => {});
+  }
+
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
