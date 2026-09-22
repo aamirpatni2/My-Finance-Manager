@@ -1,7 +1,19 @@
 import React from 'react';
-import { Wallet, Target, Sparkles, Compass, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Wallet, Target, Sparkles, Compass, Mail, ArrowRight, ShieldCheck, Globe } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { BRAND, CONTACT } from '../config/brand';
+
+const FacebookIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+    <path d="M24 12.073C24 5.446 18.627 0 12 0S0 5.446 0 12.073C0 18.063 4.388 23.027 10.125 23.927v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.063 24 12.073z" />
+  </svg>
+);
+
+const LinkedInIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z" />
+  </svg>
+);
 
 interface WelcomeScreenProps {
   onStartTour: () => void;
@@ -37,9 +49,14 @@ const FEATURES = [
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartTour, onSkip }) => {
   const socials = [
-    CONTACT.facebook && { label: 'Facebook', href: CONTACT.facebook },
-    CONTACT.linkedin && { label: 'LinkedIn', href: CONTACT.linkedin },
-  ].filter(Boolean) as Array<{ label: string; href: string }>;
+    CONTACT.facebook && { label: 'Facebook', href: CONTACT.facebook, Icon: FacebookIcon },
+    CONTACT.linkedin && { label: 'LinkedIn', href: CONTACT.linkedin, Icon: LinkedInIcon },
+    CONTACT.website && { label: 'Website', href: CONTACT.website, Icon: Globe },
+  ].filter(Boolean) as Array<{
+    label: string;
+    href: string;
+    Icon: React.ComponentType<{ className?: string }>;
+  }>;
 
   return (
     <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-50 dark:bg-slate-950">
@@ -149,8 +166,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartTour, onSki
                   href={social.href}
                   target="_blank"
                   rel="noreferrer noopener"
+                  aria-label={social.label}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:text-emerald-400"
                 >
+                  <social.Icon className="h-3.5 w-3.5" />
                   {social.label}
                 </a>
               ))}
