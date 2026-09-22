@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown } from 'lucide-react';
 import { IncomeItem, IncomeSource, ExpenseItem, ExpenseCategory, ExpenseType } from '../types/finance';
 import { getCurrentDateStr } from '../utils/formatters';
-import { EXPENSE_CATEGORIES } from './ExpenseTab';
+import { EXPENSE_CATEGORIES } from '../constants/categories';
 
 const INCOME_SOURCES: IncomeSource[] = ['Salary', 'Freelance', 'Business', 'Rental', 'Investment', 'Other'];
 

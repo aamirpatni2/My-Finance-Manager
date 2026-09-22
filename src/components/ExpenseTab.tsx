@@ -20,6 +20,9 @@ import {
 import { AppState, ExpenseCategory, ExpenseItem, ExpenseType, RecurringFrequency } from '../types/finance';
 import { formatPKR, formatDate, getCurrentDateStr, exportToCSV, formatMonthName } from '../utils/formatters';
 import { detectPendingRecurring, getRecurringSummary } from '../utils/recurring';
+import { EXPENSE_CATEGORIES } from '../constants/categories';
+
+export { EXPENSE_CATEGORIES };
 
 interface ExpenseTabProps {
   state: AppState;
@@ -31,20 +34,6 @@ interface ExpenseTabProps {
   onNavigateToRecurring?: () => void;
 }
 
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  'Food',
-  'Medicine',
-  'Rent/Housing',
-  'Utilities',
-  'Transport',
-  'Work',
-  'Insurance',
-  'Education',
-  'Family',
-  'Shopping',
-  'Entertainment',
-  'Other',
-];
 
 export const ExpenseTab: React.FC<ExpenseTabProps> = ({
   state,

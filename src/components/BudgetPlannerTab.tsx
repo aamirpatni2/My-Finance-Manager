@@ -16,7 +16,7 @@ import {
 import { AppState, BudgetConfig, ExpenseCategory } from '../types/finance';
 import { calculateMonthlyTotals, calculateTotalDebt } from '../utils/financialCalculations';
 import { formatPKR, formatMonthName, exportToCSV } from '../utils/formatters';
-import { EXPENSE_CATEGORIES } from './ExpenseTab';
+import { EXPENSE_CATEGORIES } from '../constants/categories';
 import { RadialBudgetProgressChart } from './RadialBudgetProgressChart';
 
 interface BudgetPlannerTabProps {
