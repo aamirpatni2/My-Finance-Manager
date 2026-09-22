@@ -11,4 +11,5 @@ export const CONTACT = {
   website: 'https://aamirpatni.vercel.app',
   facebook: 'https://www.facebook.com/aamir.a.patni',
   linkedin: 'https://www.linkedin.com/in/aamir-patni-718b6234/',
+  whatsapp: 'https://wa.me/923390006719',
 };

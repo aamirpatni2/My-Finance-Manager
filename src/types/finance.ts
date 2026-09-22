@@ -151,6 +151,5 @@ export interface AppState {
   debts: DebtItem[];
   netWorthItems: NetWorthItem[];
   selectedMonth: string; // YYYY-MM
-  theme: 'light' | 'dark';
   monthlyReviewNotes: Record<string, string>;
 }

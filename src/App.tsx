@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import {
   AppState,
   TabType,
@@ -26,20 +26,26 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { QuickAddModal } from './components/QuickAddModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { OnboardingTour } from './components/OnboardingTour';
 import { DashboardTab } from './components/DashboardTab';
-import { IncomeTab } from './components/IncomeTab';
-import { ExpenseTab } from './components/ExpenseTab';
-import { BudgetPlannerTab } from './components/BudgetPlannerTab';
-import { SavingsTab } from './components/SavingsTab';
-import { DebtManagerTab } from './components/DebtManagerTab';
-import { NetWorthTab } from './components/NetWorthTab';
-import { StressTab } from './components/StressTab';
-import { ReviewTab } from './components/ReviewTab';
-import { AICoachTab } from './components/AICoachTab';
-import { IslamicGuidanceTab } from './components/IslamicGuidanceTab';
-import { RecurringAutomationTab } from './components/RecurringAutomationTab';
+
+// Dashboard is the landing view and stays in the main bundle; every other tab
+// is fetched on first visit, which keeps the initial download small on mobile data.
+const named = <K extends string>(key: K) => (m: Record<K, React.ComponentType<any>>) => ({ default: m[key] });
+
+const IncomeTab = lazy(() => import('./components/IncomeTab').then(named('IncomeTab')));
+const ExpenseTab = lazy(() => import('./components/ExpenseTab').then(named('ExpenseTab')));
+const BudgetPlannerTab = lazy(() => import('./components/BudgetPlannerTab').then(named('BudgetPlannerTab')));
+const SavingsTab = lazy(() => import('./components/SavingsTab').then(named('SavingsTab')));
+const DebtManagerTab = lazy(() => import('./components/DebtManagerTab').then(named('DebtManagerTab')));
+const NetWorthTab = lazy(() => import('./components/NetWorthTab').then(named('NetWorthTab')));
+const StressTab = lazy(() => import('./components/StressTab').then(named('StressTab')));
+const ReviewTab = lazy(() => import('./components/ReviewTab').then(named('ReviewTab')));
+const AICoachTab = lazy(() => import('./components/AICoachTab').then(named('AICoachTab')));
+const IslamicGuidanceTab = lazy(() => import('./components/IslamicGuidanceTab').then(named('IslamicGuidanceTab')));
+const RecurringAutomationTab = lazy(() => import('./components/RecurringAutomationTab').then(named('RecurringAutomationTab')));
 
 const ONBOARDED_KEY = 'mfm_onboarded_v1';
 
@@ -425,6 +431,16 @@ export default function App() {
 
         {/* Main Tab View Port */}
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+        {/* Keyed by tab so switching away from a broken screen recovers the app */}
+        <ErrorBoundary key={activeTab} onExportBackup={handleExportBackup}>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20 text-sm text-slate-400">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-600" />
+              <span className="ml-3">Loading…</span>
+            </div>
+          }
+        >
         {activeTab === 'dashboard' && (
           <DashboardTab
             state={state}
@@ -519,6 +535,8 @@ export default function App() {
         {activeTab === 'islamic' && (
           <IslamicGuidanceTab state={state} onNavigateTab={setActiveTab} />
         )}
+        </Suspense>
+        </ErrorBoundary>
       </main>
 
       {/* Footer */}

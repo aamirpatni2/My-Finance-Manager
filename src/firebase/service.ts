@@ -80,7 +80,6 @@ export async function saveFinancialStateToCloud(
       netWorthItems: state.netWorthItems,
       selectedMonth: state.selectedMonth,
       monthlyReviewNotes: state.monthlyReviewNotes,
-      theme: state.theme,
       updatedAt: new Date().toISOString(),
     };
 
@@ -115,7 +114,6 @@ export async function fetchFinancialStateFromCloud(
       netWorthItems: data.netWorthItems || [],
       selectedMonth: data.selectedMonth,
       monthlyReviewNotes: data.monthlyReviewNotes || {},
-      theme: data.theme || 'light',
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, path);
@@ -147,7 +145,6 @@ export function subscribeToFinancialState(
           netWorthItems: data.netWorthItems || [],
           selectedMonth: data.selectedMonth,
           monthlyReviewNotes: data.monthlyReviewNotes || {},
-          theme: data.theme || 'light',
         });
       } else if (onEmpty) {
         onEmpty();

@@ -37,7 +37,6 @@ export function getHistoricalMonthStr(monthsAgo: number): string {
 
 export const sampleInitialState: AppState = {
   selectedMonth: getCurrentMonthStr(),
-  theme: 'light',
   budgetConfig: defaultBudgetConfig,
   incomes: [
     // Current Month Incomes
@@ -400,7 +399,6 @@ export const sampleInitialState: AppState = {
 
 export const emptyInitialState: AppState = {
   selectedMonth: getCurrentMonthStr(),
-  theme: 'light',
   budgetConfig: defaultBudgetConfig,
   incomes: [],
   expenses: [],
