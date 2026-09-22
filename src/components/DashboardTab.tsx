@@ -125,6 +125,94 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   const efTarget = monthlyEssentialBurn * 6;
   const efProgressPercent = efTarget > 0 ? Math.min(100, Math.round((emergencyFund / efTarget) * 100)) : 0;
 
+  // Brand-new book: show a focused setup path instead of charts full of zeros.
+  const isEmptyBook =
+    state.incomes.length === 0 &&
+    state.expenses.length === 0 &&
+    state.netWorthItems.length === 0 &&
+    state.debts.length === 0 &&
+    state.savingsGoals.length === 0;
+
+  if (isEmptyBook) {
+    const steps = [
+      {
+        n: 1,
+        title: 'Add your income',
+        body: 'Salary, freelance, business or rent — whatever comes in this month.',
+        action: 'Add income',
+        onClick: () => (onOpenAddIncome ? onOpenAddIncome() : navigate('income')),
+      },
+      {
+        n: 2,
+        title: 'Log a few expenses',
+        body: 'Start with the big ones: rent, groceries, utilities, school fees.',
+        action: 'Add expense',
+        onClick: () => (onOpenAddExpense ? onOpenAddExpense() : navigate('expense')),
+      },
+      {
+        n: 3,
+        title: 'Set your budget',
+        body: 'Give every rupee a job with the 50/30/20 framework.',
+        action: 'Open Budget Planner',
+        onClick: () => navigate('budget'),
+      },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Welcome — let's set up {formatMonthName(month)}
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Your book is empty. Three quick steps and your dashboard comes alive.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {steps.map((step) => (
+            <div
+              key={step.n}
+              className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
+                {step.n}
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-slate-900 dark:text-white">{step.title}</h3>
+              <p className="mt-1 flex-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                {step.body}
+              </p>
+              <button
+                onClick={step.onClick}
+                className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+              >
+                {step.action}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-teal-50/70 p-5 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-emerald-600 p-1.5 text-white">
+              <Info className="h-4 w-4" />
+            </div>
+            <div className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              <p className="font-semibold text-slate-900 dark:text-white">
+                Charts, badges and your stress score unlock as you add records
+              </p>
+              <p className="mt-1">
+                Want to see what a full month looks like first? Open the download icon in the header and
+                choose <strong>Load Sample Dataset</strong> to explore with demo numbers.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome & Month Subtitle */}
@@ -197,9 +285,9 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       )}
 
       {/* Hero: This Month snapshot + Net Worth — the two numbers that answer "am I okay?" */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* This Month Snapshot */}
-        <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="md:col-span-3 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-4">This Month at a Glance</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -250,7 +338,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         {/* Net Worth */}
         <div
           onClick={() => navigate('networth')}
-          className="lg:col-span-2 cursor-pointer rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-indigo-400 transition flex flex-col"
+          className="md:col-span-2 cursor-pointer rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 hover:border-indigo-400 transition flex flex-col"
         >
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span className="text-xs font-medium">Net Worth</span>

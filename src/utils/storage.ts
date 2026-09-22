@@ -398,38 +398,50 @@ export const sampleInitialState: AppState = {
   },
 };
 
+export const emptyInitialState: AppState = {
+  selectedMonth: getCurrentMonthStr(),
+  theme: 'light',
+  budgetConfig: defaultBudgetConfig,
+  incomes: [],
+  expenses: [],
+  savingsGoals: [],
+  debts: [],
+  netWorthItems: [],
+  monthlyReviewNotes: {},
+};
+
+export function createEmptyState(): AppState {
+  const fresh: AppState = {
+    ...emptyInitialState,
+    selectedMonth: getCurrentMonthStr(),
+    budgetConfig: {
+      ...defaultBudgetConfig,
+      categoryBudgets: { ...defaultBudgetConfig.categoryBudgets },
+    },
+    monthlyReviewNotes: {},
+  };
+  saveAppState(fresh);
+  return fresh;
+}
+
 export function loadAppState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      saveAppState(sampleInitialState);
-      return sampleInitialState;
+      // No seeding here — onboarding asks the user to choose fresh vs sample data.
+      return emptyInitialState;
     }
     const parsed = JSON.parse(raw);
-    const existingExpenses = parsed.expenses || [];
-    const distinctExpenseMonths = new Set(existingExpenses.map((e: any) => e.date?.substring(0, 7)));
-
-    let mergedExpenses = existingExpenses;
-    let mergedIncomes = parsed.incomes || [];
-
-    // If existing state has fewer than 3 months of expenses, include sample historical records from prior months
-    if (distinctExpenseMonths.size < 3) {
-      const currentM = getCurrentMonthStr();
-      const pastSampleExpenses = sampleInitialState.expenses.filter((e) => !e.date.startsWith(currentM));
-      const pastSampleIncomes = sampleInitialState.incomes.filter((i) => !i.date.startsWith(currentM));
-      mergedExpenses = [...existingExpenses, ...pastSampleExpenses];
-      mergedIncomes = [...mergedIncomes, ...pastSampleIncomes];
-    }
 
     return {
-      ...sampleInitialState,
+      ...emptyInitialState,
       ...parsed,
-      incomes: mergedIncomes,
-      expenses: mergedExpenses,
-      monthlyReviewNotes: {
-        ...(sampleInitialState.monthlyReviewNotes || {}),
-        ...(parsed.monthlyReviewNotes || {}),
-      },
+      incomes: parsed.incomes || [],
+      expenses: parsed.expenses || [],
+      savingsGoals: parsed.savingsGoals || [],
+      debts: parsed.debts || [],
+      netWorthItems: parsed.netWorthItems || [],
+      monthlyReviewNotes: parsed.monthlyReviewNotes || {},
       budgetConfig: {
         ...defaultBudgetConfig,
         ...(parsed.budgetConfig || {}),
@@ -441,7 +453,7 @@ export function loadAppState(): AppState {
     };
   } catch (e) {
     console.error('Failed to load state from localStorage:', e);
-    return sampleInitialState;
+    return emptyInitialState;
   }
 }
 
@@ -480,10 +492,29 @@ export function importDataFromJSON(
     try {
       const content = e.target?.result as string;
       const parsed = JSON.parse(content);
-      if (!parsed.incomes || !parsed.expenses || !parsed.budgetConfig) {
+      if (!Array.isArray(parsed.incomes) || !Array.isArray(parsed.expenses) || !parsed.budgetConfig) {
         throw new Error('Invalid backup file structure.');
       }
-      onSuccess(parsed as AppState);
+      // Fill any missing collections so a partial backup cannot crash the calculations.
+      onSuccess({
+        ...emptyInitialState,
+        ...parsed,
+        incomes: parsed.incomes,
+        expenses: parsed.expenses,
+        savingsGoals: Array.isArray(parsed.savingsGoals) ? parsed.savingsGoals : [],
+        debts: Array.isArray(parsed.debts) ? parsed.debts : [],
+        netWorthItems: Array.isArray(parsed.netWorthItems) ? parsed.netWorthItems : [],
+        monthlyReviewNotes: parsed.monthlyReviewNotes || {},
+        selectedMonth: parsed.selectedMonth || getCurrentMonthStr(),
+        budgetConfig: {
+          ...defaultBudgetConfig,
+          ...parsed.budgetConfig,
+          categoryBudgets: {
+            ...defaultBudgetConfig.categoryBudgets,
+            ...(parsed.budgetConfig?.categoryBudgets || {}),
+          },
+        },
+      } as AppState);
     } catch (err: any) {
       onError('Failed to parse backup JSON file: ' + err.message);
     }

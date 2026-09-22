@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   AppState,
   TabType,
@@ -16,6 +16,7 @@ import {
   exportDataAsJSON,
   importDataFromJSON,
   resetToSampleData,
+  createEmptyState,
 } from './utils/storage';
 import { detectPendingRecurring } from './utils/recurring';
 import { auth } from './firebase/config';
@@ -24,6 +25,8 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { QuickAddModal } from './components/QuickAddModal';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { OnboardingTour } from './components/OnboardingTour';
 import { DashboardTab } from './components/DashboardTab';
 import { IncomeTab } from './components/IncomeTab';
 import { ExpenseTab } from './components/ExpenseTab';
@@ -37,10 +40,21 @@ import { AICoachTab } from './components/AICoachTab';
 import { IslamicGuidanceTab } from './components/IslamicGuidanceTab';
 import { RecurringAutomationTab } from './components/RecurringAutomationTab';
 
+const ONBOARDED_KEY = 'mfm_onboarded_v1';
+
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadAppState());
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const skipNextCloudPush = useRef(false);
+
+  const [onboardingStage, setOnboardingStage] = useState<'welcome' | 'tour' | 'done'>(() => {
+    try {
+      return localStorage.getItem(ONBOARDED_KEY) ? 'done' : 'welcome';
+    } catch {
+      return 'done';
+    }
+  });
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return (
@@ -64,14 +78,31 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  // Lock background scrolling while the welcome screen or tour is open
+  useEffect(() => {
+    if (onboardingStage === 'done') return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [onboardingStage]);
+
   // Cloud State Hydration from Firestore
   const handleCloudStateSync = useCallback((cloudState: AppState) => {
+    // Cloud-originated state must not be pushed straight back up, or the
+    // snapshot listener and the auto-sync effect write to each other forever.
+    skipNextCloudPush.current = true;
     setState(cloudState);
     saveAppState(cloudState);
   }, []);
 
   // Auto-sync state changes to Firestore when authenticated
   useEffect(() => {
+    if (skipNextCloudPush.current) {
+      skipNextCloudPush.current = false;
+      return;
+    }
     if (auth.currentUser) {
       const timer = setTimeout(() => {
         saveFinancialStateToCloud(auth.currentUser!.uid, state).catch((err) => {
@@ -345,6 +376,24 @@ export default function App() {
     }
   };
 
+  const markOnboarded = () => {
+    try {
+      localStorage.setItem(ONBOARDED_KEY, new Date().toISOString());
+    } catch {
+      // Private-mode browsers simply replay onboarding next visit.
+    }
+    setOnboardingStage('done');
+  };
+
+  const handleFinishOnboarding = (mode: 'fresh' | 'sample') => {
+    const next = mode === 'sample' ? resetToSampleData() : createEmptyState();
+    setState(next);
+    setActiveTab('dashboard');
+    markOnboarded();
+  };
+
+  const handleReplayTour = () => setOnboardingStage('tour');
+
   return (
     <AuthProvider currentState={state} onStateUpdateFromCloud={handleCloudStateSync}>
       <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
@@ -359,6 +408,7 @@ export default function App() {
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
           onResetSample={handleResetSample}
+          onReplayTour={handleReplayTour}
           currentState={state}
         />
 
@@ -484,6 +534,14 @@ export default function App() {
         onAddIncome={handleAddIncome}
         onAddExpense={handleAddExpense}
       />
+
+      {/* First-run welcome & guided tour */}
+      {onboardingStage === 'welcome' && (
+        <WelcomeScreen onStartTour={() => setOnboardingStage('tour')} onSkip={markOnboarded} />
+      )}
+      {onboardingStage === 'tour' && (
+        <OnboardingTour onFinish={handleFinishOnboarding} onClose={markOnboarded} />
+      )}
     </div>
   </AuthProvider>
   );

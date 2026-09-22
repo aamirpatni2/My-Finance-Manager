@@ -12,10 +12,12 @@ import {
   ArrowLeftRight,
   PiggyBank,
   Sparkles,
+  LifeBuoy,
 } from 'lucide-react';
 import { TabType, AppState } from '../types/finance';
 import { formatMonthName } from '../utils/formatters';
 import { AuthBar } from './AuthBar';
+import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -27,6 +29,7 @@ interface NavbarProps {
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
   onResetSample: () => void;
+  onReplayTour?: () => void;
   currentState: AppState;
 }
 
@@ -80,6 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportBackup,
   onImportBackup,
   onResetSample,
+  onReplayTour,
   currentState,
 }) => {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
@@ -116,9 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => onSelectTab('dashboard')}
             className="flex items-center gap-2.5 cursor-pointer shrink-0"
           >
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-500/20 font-bold text-base sm:text-lg">
-              Rs
-            </div>
+            <BrandLogo size={38} className="shrink-0 sm:h-10 sm:w-10" />
             <div className="hidden sm:block">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">
@@ -317,6 +319,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
                 <span className="text-[11px] font-bold text-amber-600">Reset</span>
               </button>
+
+              {/* Replay the guided tour */}
+              {onReplayTour && (
+                <button
+                  onClick={() => {
+                    setIsBackupModalOpen(false);
+                    onReplayTour();
+                  }}
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 p-3.5 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <LifeBuoy className="h-4 w-4 text-indigo-600" />
+                    <div className="text-left">
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        Replay the app tour
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        A 60-second walkthrough of every section
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-indigo-600">Show</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
