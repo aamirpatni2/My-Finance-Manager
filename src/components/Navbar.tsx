@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { TabType, AppState } from '../types/finance';
 import { formatMonthName } from '../utils/formatters';
+import { buildMonthOptions } from '../utils/months';
 import { AuthBar } from './AuthBar';
 import { BrandLogo } from './BrandLogo';
 
@@ -89,17 +90,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate list of available months (last 12 months + next 3 months)
-  const monthOptions = React.useMemo(() => {
-    const list: string[] = [];
-    const now = new Date();
-    for (let i = -11; i <= 3; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      list.push(val);
-    }
-    return list;
-  }, []);
+  const monthOptions = React.useMemo(
+    () =>
+      buildMonthOptions(
+        new Date(),
+        [...currentState.incomes.map((i) => i.date), ...currentState.expenses.map((e) => e.date)],
+        selectedMonth
+      ),
+    [currentState.incomes, currentState.expenses, selectedMonth]
+  );
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

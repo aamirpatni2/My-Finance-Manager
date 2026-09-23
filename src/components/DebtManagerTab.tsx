@@ -85,9 +85,9 @@ export const DebtManagerTab: React.FC<DebtManagerTabProps> = ({
     e.preventDefault();
     const orig = parseFloat(originalAmount);
     const rem = parseFloat(remainingAmount);
-    const rate = parseFloat(interestRate) || 0;
-    const minPay = parseFloat(minimumPayment) || 0;
-    if (isNaN(orig) || isNaN(rem) || rem < 0) return;
+    const rate = Math.max(0, parseFloat(interestRate) || 0);
+    const minPay = Math.max(0, parseFloat(minimumPayment) || 0);
+    if (isNaN(orig) || isNaN(rem) || orig < 0 || rem < 0) return;
 
     if (editingDebt) {
       onUpdateDebt({

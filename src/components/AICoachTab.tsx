@@ -278,6 +278,7 @@ How can I help you improve your cashflow, pay off debt, or optimize your savings
             className="flex items-center gap-2"
           >
             <input
+              maxLength={1000}
               type="text"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}

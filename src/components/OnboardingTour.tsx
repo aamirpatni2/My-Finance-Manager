@@ -11,11 +11,14 @@ import {
   X,
   Plus,
   FileSpreadsheet,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface OnboardingTourProps {
   onFinish: (mode: 'fresh' | 'sample') => void;
   onClose: () => void;
+  // Replaying the tour from the menu must never silently wipe a real book.
+  hasExistingData?: boolean;
 }
 
 interface TourStep {
@@ -102,8 +105,19 @@ const STEPS: TourStep[] = [
   },
 ];
 
-export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onFinish, onClose }) => {
+export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onFinish, onClose, hasExistingData = false }) => {
   const [stepIndex, setStepIndex] = useState(0);
+
+  const choose = (mode: 'fresh' | 'sample') => {
+    if (hasExistingData) {
+      const message =
+        mode === 'fresh'
+          ? 'Erase all your records and start an empty book? If you are signed in, this also clears them on your other devices. Export a backup first if unsure.'
+          : 'Replace all your records with demo data? If you are signed in, this also replaces them on your other devices. Export a backup first if unsure.';
+      if (!window.confirm(message)) return;
+    }
+    onFinish(mode);
+  };
 
   const isChoiceStep = stepIndex === STEPS.length;
   const step = STEPS[stepIndex];
@@ -145,16 +159,41 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onFinish, onClos
           {isChoiceStep ? (
             <div className="text-center">
               <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                How do you want to begin?
+                {hasExistingData ? 'You already have records' : 'How do you want to begin?'}
               </h2>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                You can switch later from the backup menu at any time.
+                {hasExistingData
+                  ? 'Keep them, or replace everything with an empty book or the demo data.'
+                  : 'You can switch later from the backup menu at any time.'}
               </p>
 
               <div className="mt-6 space-y-3 text-left">
+                {hasExistingData && (
+                  <button
+                    onClick={onClose}
+                    className="flex w-full items-start gap-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50/60 p-4 text-left transition hover:bg-emerald-50 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50"
+                  >
+                    <div className="rounded-xl bg-emerald-600 p-2 text-white">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">
+                        Keep my current records
+                      </div>
+                      <div className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                        Close the tour and carry on exactly where you were.
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 <button
-                  onClick={() => onFinish('fresh')}
-                  className="flex w-full items-start gap-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50/60 p-4 text-left transition hover:bg-emerald-50 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50"
+                  onClick={() => choose('fresh')}
+                  className={`flex w-full items-start gap-3 rounded-2xl p-4 text-left transition ${
+                    hasExistingData
+                      ? 'border border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                      : 'border-2 border-emerald-600 bg-emerald-50/60 hover:bg-emerald-50 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50'
+                  }`}
                 >
                   <div className="rounded-xl bg-emerald-600 p-2 text-white">
                     <Plus className="h-5 w-5" />
@@ -171,7 +210,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onFinish, onClos
                 </button>
 
                 <button
-                  onClick={() => onFinish('sample')}
+                  onClick={() => choose('sample')}
                   className="flex w-full items-start gap-3 rounded-2xl border border-slate-200 p-4 text-left transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                 >
                   <div className="rounded-xl bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">

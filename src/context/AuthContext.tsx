@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import {
   loginWithGoogle,
@@ -11,6 +11,7 @@ import {
 } from '../firebase/service';
 import { testConnection } from '../firebase/config';
 import { AppState } from '../types/finance';
+import { syncSignature } from '../utils/syncState';
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
 
@@ -44,6 +45,48 @@ export const AuthProvider: React.FC<{
     stateRef.current = currentState;
   }, [currentState]);
 
+  const userRef = useRef<FirebaseUser | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  // Signature of the records last known to match the cloud copy. Anything that
+  // matches it needs no upload, and a snapshot that matches it is just the echo
+  // of our own write — applying that echo could overwrite a newer local edit.
+  const lastSyncedSig = useRef<string | null>(null);
+
+  const applyCloudState = useCallback(
+    (cloudState: AppState) => {
+      lastSyncedSig.current = syncSignature(cloudState);
+      onStateUpdateFromCloud(cloudState);
+    },
+    [onStateUpdateFromCloud]
+  );
+
+  // Auto-sync local edits. Lives here rather than in App so a failed write
+  // shows up in the sync badge instead of only in the console.
+  const signature = useMemo(() => syncSignature(currentState), [currentState]);
+  useEffect(() => {
+    const currentUser = userRef.current;
+    if (!currentUser || signature === lastSyncedSig.current) return;
+
+    const timer = setTimeout(async () => {
+      setSyncStatus('syncing');
+      try {
+        await saveFinancialStateToCloud(currentUser.uid, stateRef.current);
+        lastSyncedSig.current = signature;
+        setSyncStatus('synced');
+        setSyncError(null);
+        setLastSyncedAt(new Date());
+      } catch (err: unknown) {
+        console.error('Auto cloud sync error:', err);
+        setSyncStatus('error');
+        setSyncError(err instanceof Error ? err.message : 'Cloud sync failed');
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [signature]);
+
   // Initial connection test on mount
   useEffect(() => {
     testConnection();
@@ -69,12 +112,13 @@ export const AuthProvider: React.FC<{
           const cloudData = await fetchFinancialStateFromCloud(currentUser.uid);
           if (cloudData) {
             // Restore from cloud
-            onStateUpdateFromCloud(cloudData);
+            applyCloudState(cloudData);
             setSyncStatus('synced');
             setLastSyncedAt(new Date());
           } else {
             // First time login - upload current state to Firestore so user doesn't lose anything
             await saveFinancialStateToCloud(currentUser.uid, stateRef.current);
+            lastSyncedSig.current = syncSignature(stateRef.current);
             setSyncStatus('synced');
             setLastSyncedAt(new Date());
           }
@@ -89,7 +133,7 @@ export const AuthProvider: React.FC<{
     });
 
     return () => unsubscribe();
-  }, [onStateUpdateFromCloud]);
+  }, [applyCloudState]);
 
   // Real-time Firestore sync listener when authenticated
   useEffect(() => {
@@ -98,7 +142,10 @@ export const AuthProvider: React.FC<{
     const unsubscribe = subscribeToFinancialState(
       user.uid,
       (cloudData) => {
-        onStateUpdateFromCloud(cloudData);
+        // Echo of our own last write: already reflected locally, and applying it
+        // late could clobber an edit made while the write was in flight.
+        if (syncSignature(cloudData) === lastSyncedSig.current) return;
+        applyCloudState(cloudData);
         setSyncStatus('synced');
         setLastSyncedAt(new Date());
       },
@@ -108,7 +155,7 @@ export const AuthProvider: React.FC<{
     );
 
     return () => unsubscribe();
-  }, [user, onStateUpdateFromCloud]);
+  }, [user, applyCloudState]);
 
   const signIn = useCallback(async () => {
     setSyncError(null);
@@ -141,6 +188,7 @@ export const AuthProvider: React.FC<{
     setSyncError(null);
     try {
       await saveFinancialStateToCloud(user.uid, stateToSync);
+      lastSyncedSig.current = syncSignature(stateToSync);
       setSyncStatus('synced');
       setLastSyncedAt(new Date());
     } catch (err: unknown) {

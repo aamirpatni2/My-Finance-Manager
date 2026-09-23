@@ -38,7 +38,16 @@ app.get("/api/health", (_req, res) => {
 // AI Coach recommendation endpoint
 app.post("/api/coach/insights", async (req, res) => {
   try {
-    const { financialData, prompt } = req.body;
+    const { financialData, prompt } = req.body || {};
+
+    // Same bounds as the Vercel function in api/coach/insights.ts.
+    if (prompt !== undefined && (typeof prompt !== "string" || prompt.length > 1000)) {
+      return res.status(413).json({ error: "Question must be under 1000 characters." });
+    }
+    if (JSON.stringify(financialData ?? {}).length > 20000) {
+      return res.status(413).json({ error: "Financial snapshot too large." });
+    }
+
     const ai = getGeminiClient();
 
     if (!ai) {

@@ -20,8 +20,6 @@ import {
 } from './utils/storage';
 import { detectPendingRecurring } from './utils/recurring';
 import { formatPKR, formatMonthName } from './utils/formatters';
-import { auth } from './firebase/config';
-import { saveFinancialStateToCloud } from './firebase/service';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -49,11 +47,18 @@ const RecurringAutomationTab = lazy(() => import('./components/RecurringAutomati
 
 const ONBOARDED_KEY = 'mfm_onboarded_v1';
 
+type UndoCollection = 'incomes' | 'expenses' | 'savingsGoals' | 'debts' | 'netWorthItems';
+interface PendingUndo {
+  collection: UndoCollection;
+  item: { id: string };
+  index: number;
+  label: string;
+}
+
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadAppState());
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-  const skipNextCloudPush = useRef(false);
 
   const [onboardingStage, setOnboardingStage] = useState<'welcome' | 'tour' | 'done'>(() => {
     try {
@@ -95,30 +100,15 @@ export default function App() {
     };
   }, [onboardingStage]);
 
-  // Cloud State Hydration from Firestore
+  // Cloud State Hydration from Firestore. Auto-sync back up lives in AuthProvider.
   const handleCloudStateSync = useCallback((cloudState: AppState) => {
-    // Cloud-originated state must not be pushed straight back up, or the
-    // snapshot listener and the auto-sync effect write to each other forever.
-    skipNextCloudPush.current = true;
-    setState(cloudState);
-    saveAppState(cloudState);
+    setState((prev) => {
+      // The month being viewed is per-device; keep this device's choice.
+      const next = { ...cloudState, selectedMonth: prev.selectedMonth || cloudState.selectedMonth };
+      saveAppState(next);
+      return next;
+    });
   }, []);
-
-  // Auto-sync state changes to Firestore when authenticated
-  useEffect(() => {
-    if (skipNextCloudPush.current) {
-      skipNextCloudPush.current = false;
-      return;
-    }
-    if (auth.currentUser) {
-      const timer = setTimeout(() => {
-        saveFinancialStateToCloud(auth.currentUser!.uid, state).catch((err) => {
-          console.error('Auto cloud sync error:', err);
-        });
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [state]);
 
   // Persist state changes
   const updateState = (updater: (prev: AppState) => AppState) => {
@@ -127,6 +117,42 @@ export default function App() {
       saveAppState(next);
       return next;
     });
+  };
+
+  // A delete is one tap on a phone and syncs to every signed-in device, so each
+  // one stays undoable for a few seconds rather than being instantly permanent.
+  const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
+  const undoTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(undoTimer.current), []);
+
+  const deleteWithUndo = (collection: UndoCollection, id: string, label: string) => {
+    const list = state[collection] as Array<{ id: string }>;
+    const index = list.findIndex((entry) => entry.id === id);
+    if (index === -1) return;
+    const item = list[index];
+
+    updateState((prev) => ({
+      ...prev,
+      [collection]: (prev[collection] as Array<{ id: string }>).filter((entry) => entry.id !== id),
+    }));
+
+    window.clearTimeout(undoTimer.current);
+    setPendingUndo({ collection, item, index, label });
+    undoTimer.current = window.setTimeout(() => setPendingUndo(null), 6000);
+  };
+
+  const handleUndoDelete = () => {
+    if (!pendingUndo) return;
+    const { collection, item, index } = pendingUndo;
+    updateState((prev) => {
+      const list = [...(prev[collection] as Array<{ id: string }>)];
+      if (list.some((entry) => entry.id === item.id)) return prev;
+      list.splice(Math.min(index, list.length), 0, item);
+      return { ...prev, [collection]: list };
+    });
+    window.clearTimeout(undoTimer.current);
+    setPendingUndo(null);
   };
 
   // Month navigation
@@ -159,12 +185,7 @@ export default function App() {
     }));
   };
 
-  const handleDeleteIncome = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      incomes: prev.incomes.filter((i) => i.id !== id),
-    }));
-  };
+  const handleDeleteIncome = (id: string) => deleteWithUndo('incomes', id, 'Income entry deleted');
 
   // Expense Handlers
   const handleAddExpense = (item: Omit<ExpenseItem, 'id' | 'createdAt'>) => {
@@ -188,12 +209,7 @@ export default function App() {
     }));
   };
 
-  const handleDeleteExpense = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      expenses: prev.expenses.filter((e) => e.id !== id),
-    }));
-  };
+  const handleDeleteExpense = (id: string) => deleteWithUndo('expenses', id, 'Expense deleted');
 
   // Budget Config Handler
   const handleUpdateBudgetConfig = (config: BudgetConfig) => {
@@ -225,12 +241,7 @@ export default function App() {
     }));
   };
 
-  const handleDeleteSavingsGoal = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      savingsGoals: prev.savingsGoals.filter((g) => g.id !== id),
-    }));
-  };
+  const handleDeleteSavingsGoal = (id: string) => deleteWithUndo('savingsGoals', id, 'Savings goal deleted');
 
   const handleDepositToGoal = (id: string, amount: number) => {
     updateState((prev) => ({
@@ -264,23 +275,23 @@ export default function App() {
     }));
   };
 
-  const handleDeleteDebt = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      debts: prev.debts.filter((d) => d.id !== id),
-    }));
-  };
+  const handleDeleteDebt = (id: string) => deleteWithUndo('debts', id, 'Debt deleted');
 
   const handleRecordDebtPayment = (debtId: string, payment: Omit<DebtPayment, 'id'>) => {
     updateState((prev) => ({
       ...prev,
       debts: prev.debts.map((d) => {
         if (d.id !== debtId) return d;
+        // Record only what the balance could absorb, so the history adds up to
+        // the balance reduction instead of overstating an overpayment.
+        const applied = Math.min(payment.amount, d.remainingAmount);
+        if (applied <= 0) return d;
         const newPayment: DebtPayment = {
           ...payment,
-          id: `pay_${Date.now()}`,
+          amount: applied,
+          id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         };
-        const newRemaining = Math.max(0, d.remainingAmount - payment.amount);
+        const newRemaining = d.remainingAmount - applied;
         return {
           ...d,
           remainingAmount: newRemaining,
@@ -312,12 +323,7 @@ export default function App() {
     }));
   };
 
-  const handleDeleteNetWorthItem = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      netWorthItems: prev.netWorthItems.filter((n) => n.id !== id),
-    }));
-  };
+  const handleDeleteNetWorthItem = (id: string) => deleteWithUndo('netWorthItems', id, 'Net worth item deleted');
 
   // Monthly Review Notes Handler
   const handleSaveReviewNotes = (notes: string) => {
@@ -564,12 +570,40 @@ export default function App() {
         onAddExpense={handleAddExpense}
       />
 
+      {/* Undo toast — sits above the mobile bottom nav */}
+      {pendingUndo && (
+        <div
+          role="status"
+          className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 md:bottom-6"
+        >
+          <div className="flex items-center gap-4 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-2xl dark:bg-white dark:text-slate-900">
+            <span>{pendingUndo.label}</span>
+            <button
+              onClick={handleUndoDelete}
+              className="font-bold text-emerald-400 transition hover:text-emerald-300 dark:text-emerald-600"
+            >
+              Undo
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* First-run welcome & guided tour */}
       {onboardingStage === 'welcome' && (
         <WelcomeScreen onStartTour={() => setOnboardingStage('tour')} onSkip={markOnboarded} />
       )}
       {onboardingStage === 'tour' && (
-        <OnboardingTour onFinish={handleFinishOnboarding} onClose={markOnboarded} />
+        <OnboardingTour
+          onFinish={handleFinishOnboarding}
+          onClose={markOnboarded}
+          hasExistingData={
+            state.incomes.length > 0 ||
+            state.expenses.length > 0 ||
+            state.savingsGoals.length > 0 ||
+            state.debts.length > 0 ||
+            state.netWorthItems.length > 0
+          }
+        />
       )}
     </div>
   </AuthProvider>

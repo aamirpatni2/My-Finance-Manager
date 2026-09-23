@@ -92,7 +92,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const target = parseFloat(targetAmount);
-    const current = parseFloat(currentAmount) || 0;
+    const current = Math.max(0, parseFloat(currentAmount) || 0);
     if (isNaN(target) || target <= 0) return;
 
     if (editingGoal) {

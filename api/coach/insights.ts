@@ -10,6 +10,9 @@ function getGeminiClient(): GoogleGenAI | null {
   return new GoogleGenAI({ apiKey });
 }
 
+const MAX_PROMPT_CHARS = 1000;
+const MAX_DATA_CHARS = 20000;
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -17,6 +20,15 @@ export default async function handler(req: any, res: any) {
 
   try {
     const { financialData, prompt } = req.body || {};
+
+    // The endpoint is public, so bound what a single call can cost.
+    if (prompt !== undefined && (typeof prompt !== 'string' || prompt.length > MAX_PROMPT_CHARS)) {
+      return res.status(413).json({ error: `Question must be under ${MAX_PROMPT_CHARS} characters.` });
+    }
+    if (JSON.stringify(financialData ?? {}).length > MAX_DATA_CHARS) {
+      return res.status(413).json({ error: 'Financial snapshot too large.' });
+    }
+
     const ai = getGeminiClient();
 
     if (!ai) {
